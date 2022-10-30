@@ -50,7 +50,14 @@ piuRouter.put('/:id', (request, response) => {
     }
 
     pius[piuIndex].iduser = iduser;
+    if(pius.find(piu => pius[piuIndex].iduser === piu.iduser)){
+        return response.status(400).json({message: "Id de usuário não existe"});
+    }
+    
     pius[piuIndex].txt = txt;
+    if(pius[piuIndex].txt.length > 140){
+        return response.status(400).json({message: "Os Pius só podem ter até 140 caracteres!"})
+    }
     pius[piuIndex].dta = new Date();
 
     return response.status(200).json({message: "Piu atualizado com sucesso"});
