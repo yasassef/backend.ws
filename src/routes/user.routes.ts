@@ -1,36 +1,38 @@
 import { Router } from "express";
-import {startOfHour, parseISO} from "date-fns";
 import User from "../models/users";
 
 const userRouter = Router();
 
-const users : User[] = []; // estamos criando um vetor de usuários 
+ export const users : User[] = []; // estamos criando um vetor de usuários 
 
 userRouter.post('/', (request, response) => {
-    const { name, nascimento, cpf, telefone, dtc, dta } = request.body;
+    const { name, nascimento, cpf, telefone} = request.body;
 
-    if(users.find(user => user.cpf === cpf)) // tratamento de erro, não deixa repetir o email
+    if(users.find(user => user.cpf === cpf)){
         return response.status(400).json({message: "Este cpf já está sendo utilizado"});
-
-    const parsedtc = startOfHour(parseISO(dtc));
-    const parsedta = parseISO(dta);
-
-    const user = new User(name, nascimento, cpf, telefone, parsedtc, parsedta);
-
-    if(user.name === null){
-        return response.status(400).json({message: "Digite o nome"});
-    }
-    if(user.nascimento === null){
-        return response.status(400).json({message: "Digite o nascimento"});
-    }
-    if(user.cpf === null){
-        return response.status(400).json({message: "Digite o cpf"});
-    }
-    if(user.telefone === null){
-        return response.status(400).json({message: "Digite o telefone"});
     }
 
-    users.push(user); // estamos adicionando o novo usuário no vetor 
+    const user = new User(name, nascimento, cpf, telefone, new Date(), new Date());
+    if(user.name.length === 0){
+        return response.status(400).json({message: "Preencha o nome!"});
+    }
+    if(user.nascimento.length === 0){
+        return response.status(400).json({message: "Preencha o nascimento!"});
+    }
+    if(user.cpf === null ){
+        return response.status(400).json({message: "Preencha o cpf!"});
+    }
+    if(user.cpf.length < 9){
+        return response.status(400).json({message: "Cpf não tem caracteres suficientes!"});
+    }
+    if(user.telefone.length === 0){
+        return response.status(400).json({message: "Preencha o telefone!"});
+    }
+    if(user.telefone.length < 9){
+        return response.status(400).json({message: "Telefone não tem caracteres suficientes!"});
+    }
+
+    users.push(user); 
     return response.json(user);
 });
 
@@ -38,13 +40,44 @@ userRouter.get('/', (request, response) => {
     return response.json(users);
 });
 
-// aqui vamos procurar um usuário com um id específico
 userRouter.get('/:id', (request, response) => { 
     const { id } = request.params;
     const user = users.find(user => user.id === id);
-    if (!user) // caso não encontre, retorna esse erro 
+    if (!user) 
         return response.status(404).json({message : "Usuário não encontrado"}); 
     response.json(user);
+});
+
+userRouter.put('/:id', (request, response) => {
+    const { id } = request.params;
+    const {name, nascimento, cpf, telefone} = request.body;
+    const userIndex = users.findIndex(user => user.id === id);
+
+    if (userIndex === -1){
+        return response.status(404).json({message : "Usuário não encontrado"}); 
+    }
+
+    users[userIndex].name = name;
+    users[userIndex].nascimento = nascimento;
+    users[userIndex].cpf = cpf;
+
+    if(!users.find(user => users[userIndex].cpf === user.cpf)){
+        return response.status(400).json({message: "Cpf já está sendo utilizado"});
+    }
+    users[userIndex].telefone = telefone;
+    users[userIndex].dta = new Date();
+
+    return response.status(200).json({massage: "Dados do usuário atualizados com sucesso"});
+});
+
+userRouter.delete('/:id', (request, response) => {
+    const { id } = request.params;
+    const userIndex = users.findIndex(user => user.id === id);
+    if (userIndex === -1){
+        return response.status(404).json({message : "Usuário não encontrado"}); 
+    }
+    users.splice(userIndex, 1);
+    return response.status(200).json({message: "Usuário Deletado"});
 });
 
 export default userRouter;
