@@ -13,7 +13,6 @@ userRouter.post('/', (request, response) => {
     }
 
     const user = new User(name, nascimento, cpf, telefone, new Date(), new Date());
-    
     if(user.name.length === 0){
         return response.status(400).json({message: "Preencha o nome!"});
     }
@@ -60,11 +59,10 @@ userRouter.put('/:id', (request, response) => {
 
     users[userIndex].name = name;
     users[userIndex].nascimento = nascimento;
-    users[userIndex].cpf = cpf;
-
-    if(users.find(user => users[userIndex].cpf === user.cpf)){
+    if(users.find(user => user.cpf === cpf && user.id !== id)){
         return response.status(400).json({message: "Cpf já está sendo utilizado"});
     }
+    users[userIndex].cpf = cpf;
     users[userIndex].telefone = telefone;
     users[userIndex].dta = new Date();
 

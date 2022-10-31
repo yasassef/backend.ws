@@ -50,7 +50,7 @@ piuRouter.put('/:id', (request, response) => {
     }
 
     pius[piuIndex].iduser = iduser;
-    if(pius.find(piu => pius[piuIndex].iduser === piu.iduser)){
+    if(pius.find(piu => piu.iduser === iduser && piu.id !== id)){
         return response.status(400).json({message: "Id de usuário não existe"});
     }
     
